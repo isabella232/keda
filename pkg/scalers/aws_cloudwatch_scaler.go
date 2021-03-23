@@ -118,12 +118,18 @@ func parseAwsCloudwatchMetadata(config *ScalerConfig) (*awsCloudwatchMetadata, e
 
 	if val, ok := config.TriggerMetadata["dimensionName"]; ok && val != "" {
 		meta.dimensionName = strings.Split(val, ";")
-	} else {
+	} else if val == "" {
+                meta.dimensionName = []string{}
+        } else {
+                fmt.Println("dimensionName")
+                fmt.Println(val)
 		return nil, fmt.Errorf("dimension name not given")
 	}
 
 	if val, ok := config.TriggerMetadata["dimensionValue"]; ok && val != "" {
 		meta.dimensionValue = strings.Split(val, ";")
+        } else if val == "" {
+                meta.dimensionValue = []string{}
 	} else {
 		return nil, fmt.Errorf("dimension value not given")
 	}
@@ -211,9 +217,19 @@ func (c *awsCloudwatchScaler) GetMetrics(ctx context.Context, metricName string,
 
 func (c *awsCloudwatchScaler) GetMetricSpecForScaling() []v2beta2.MetricSpec {
 	targetMetricValue := resource.NewQuantity(int64(c.metadata.targetMetricValue), resource.DecimalSI)
+        dimensionName := "NoDimensionName"
+        if len(c.metadata.dimensionName) > 0 {
+           dimensionName = c.metadata.dimensionName[0]
+        }
+
+        dimensionValue := "NoDimensionValue"
+        if len(c.metadata.dimensionValue) > 0 {
+           dimensionValue = c.metadata.dimensionValue[0]
+        }
+
 	externalMetric := &v2beta2.ExternalMetricSource{
 		Metric: v2beta2.MetricIdentifier{
-			Name: kedautil.NormalizeString(fmt.Sprintf("%s-%s-%s-%s", "aws-cloudwatch", c.metadata.namespace, c.metadata.dimensionName[0], c.metadata.dimensionValue[0])),
+			Name: kedautil.NormalizeString(fmt.Sprintf("%s-%s-%s-%s", "aws-cloudwatch", c.metadata.namespace, dimensionName, dimensionValue)),
 		},
 		Target: v2beta2.MetricTarget{
 			Type:         v2beta2.AverageValueMetricType,
