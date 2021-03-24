@@ -232,8 +232,8 @@ func (c *awsCloudwatchScaler) GetMetricSpecForScaling() []v2beta2.MetricSpec {
 			Name: kedautil.NormalizeString(fmt.Sprintf("%s-%s-%s-%s", "aws-cloudwatch", c.metadata.namespace, dimensionName, dimensionValue)),
 		},
 		Target: v2beta2.MetricTarget{
-			Type:         v2beta2.AverageValueMetricType,
-			AverageValue: targetMetricValue,
+			Type:         v2beta2.ValueMetricType,
+			Value: targetMetricValue,
 		},
 	}
 	metricSpec := v2beta2.MetricSpec{External: externalMetric, Type: externalMetricType}
